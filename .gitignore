@@ -71,4 +71,8 @@ README_VM_DESTROY.md
 # Config (optional - uncomment if you want to ignore config files)
 # config.yaml
 
+# Setup scripts (one-time use)
+setup_github_repo.ps1
+setup_github_repo.sh
+
 
