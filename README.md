@@ -319,7 +319,5 @@ This tool is for **research and educational purposes only**. Use responsibly and
 ---
 
 **Version**: 1.0.0  
-**Last Updated**: 2024
-
-For questions or issues, please refer to the documentation or create an issue.
+**Last Updated**: 2025
 
