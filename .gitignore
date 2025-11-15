@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data
+data/models/*
+data/patches/*
+data/results/*
+!data/.gitkeep
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model checkpoints
+*.pt
+*.pth
+*.ckpt
+
+# Results
+*.png
+*.jpg
+*.mp4
+*.avi
+
+# Exclude patch images but keep some for demo
+!data/patches/attack_patch.png
+
+# VM destruction scripts (optional - comment out if you want to include)
+# vm_permanent_destroy.py
+# vm_crash_demo.py
+
+# Config (optional - uncomment if you want to ignore config files)
+# config.yaml
+
+

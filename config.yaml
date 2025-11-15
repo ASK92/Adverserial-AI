@@ -1,0 +1,78 @@
+data_dir: data
+defenses:
+  adversarial_detection:
+    enabled: true
+    norm_threshold: 0.1
+    ood_detector: true
+  context_rules:
+    enabled: true
+    spatial_check: true
+    temporal_check: true
+  input_normalization:
+    affine_prob: 0.3
+    blur_kernel_size: 5
+    blur_prob: 0.3
+    brightness_range: !!python/tuple
+    - 0.7
+    - 1.3
+    enabled: true
+    noise_std: 0.05
+  model_ensemble:
+    consensus_threshold: 0.5
+    enabled: true
+    models:
+    - yolov5
+    - resnet
+    - efficientnet
+  multi_frame_smoothing:
+    consensus_threshold: 0.6
+    enabled: true
+    frame_window: 5
+device: cuda
+evaluation:
+  angle_scenarios:
+  - 0
+  - 15
+  - 30
+  - 45
+  lighting_scenarios:
+  - normal
+  - bright
+  - dark
+  - harsh
+  num_frames: 10
+  num_samples: 100
+  save_visualizations: true
+logs_dir: logs
+models:
+  efficientnet:
+    name: efficientnet_b0
+    num_classes: 1000
+    pretrained: true
+  resnet:
+    name: resnet50
+    num_classes: 1000
+    pretrained: true
+  yolov5:
+    confidence_threshold: 0.5
+    name: yolov5s
+    pretrained: true
+models_dir: data/models
+patch:
+  iterations: 1000
+  learning_rate: 0.1
+  loss_weights:
+    classification: 1.0
+    context: 0.3
+    defense_evasion: 1.0
+    detection: 1.0
+    temporal: 0.5
+  optimizer: adam
+  patch_type: universal
+  size: !!python/tuple
+  - 100
+  - 100
+  target_class: null
+patches_dir: data/patches
+random_seed: 42
+results_dir: data/results
