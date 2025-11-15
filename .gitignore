@@ -62,9 +62,11 @@ Thumbs.db
 # Exclude patch images but keep some for demo
 !data/patches/attack_patch.png
 
-# VM destruction scripts (optional - comment out if you want to include)
-# vm_permanent_destroy.py
-# vm_crash_demo.py
+# VM destruction scripts (in separate repository)
+vm_permanent_destroy.py
+vm_crash_demo.py
+README_VM_CRASH.md
+README_VM_DESTROY.md
 
 # Config (optional - uncomment if you want to ignore config files)
 # config.yaml
