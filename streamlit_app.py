@@ -1345,12 +1345,10 @@ def camera_page():
     """Display Camera Input page - Simple pipeline."""
     # Duke-themed header
     st.markdown("""
-    <div class="duke-header">
-        <h1 style="color: white !important; border: none !important;">📷 Camera Patch Detection</h1>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown('<div class="duke-divider"></div>', unsafe_allow_html=True)
+<div class="duke-header">
+    <h1 style="color: white !important; border: none !important;">📷 Camera Patch Detection</h1>
+</div>
+""", unsafe_allow_html=True)
     
     # Manual initialization button
     if st.session_state.attack_system is None:
@@ -1667,7 +1665,7 @@ def main():
     # Duke-themed sidebar header
     st.sidebar.markdown("""
     <div style="padding: 0.5rem 0 1rem 0; margin-bottom: 1rem;">
-        <h1 style="color: white !important; margin: 0; font-size: 2rem; font-weight: bold; text-align: center; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">Duke Defense</h1>
+        <h1 style="color: white !important; margin: 0; font-size: 2rem; font-weight: bold; text-align: center; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">Adversarial AI Project</h1>
     </div>
     """, unsafe_allow_html=True)
     
