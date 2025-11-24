@@ -1,14 +1,17 @@
 """
-Setup script for adversarial patch pipeline.
+Set up script for adversarial patch pipeline.
 """
 from setuptools import setup, find_packages
 
+# Read the description from README.md
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+# Read the requirements from requirements.txt
 with open("requirements.txt", "r", encoding="utf-8") as fh:
     requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
 
+# Core setup configuration for packaging & distribution
 setup(
     name="adversarial-patch-pipeline",
     version="1.0.0",

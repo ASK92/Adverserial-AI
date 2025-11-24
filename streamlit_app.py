@@ -1207,7 +1207,7 @@ def camera_page():
     # Duke-themed header
     st.markdown("""
     <div class="duke-header">
-        <h1 style="color: WHITE !important; border: none !important;">📷 Camera Patch Detection</h1>
+        <h1 style="color: white !important; border: none !important;">📷 Camera Patch Detection</h1>
     </div>
     """, unsafe_allow_html=True)
     
