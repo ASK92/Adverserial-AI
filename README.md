@@ -284,7 +284,8 @@ All experiments use fixed random seeds (RANDOM_SEED = 42) for reproducibility:
 3. Multi-Frame Smoothing: Requires temporal consensus
 4. Context Rules: Validates detections
 
-#### Advanced Defense Pipeline
+#### Advanced Defense Pipeline:
+Given the Rbustness of the patch generated and the patch bypassing all the defences, This Advanced Pipeline will stop any/all attacks and assigns confidence scores at each layer of defence
 
 | Metric | Value | Notes |
 |--------|-------|-------|
