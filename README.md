@@ -318,6 +318,8 @@ Given the Rbustness of the patch generated and the patch bypassing all the defen
 | Basic Defense | 122.70 | 28% reduction |
 | Advanced Defense | 5.82 | 97% reduction |
 
+While both defense systems achieve 100% effectiveness, they differ significantly in performance cost. The Basic Defense maintains 122.70 FPS (28% reduction), making it suitable for real-time applications. The Advanced Defense, while more comprehensive, reduces throughput to 5.82 FPS (97% reduction), making it better suited for high-security scenarios where latency is acceptable. This trade-off analysis demonstrates the practical considerations necessary when deploying security defenses in real-world systems.
+
 #### Trade-off Summary
 
 **Basic Defense**:
