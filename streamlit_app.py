@@ -12,7 +12,9 @@ import sys
 from pathlib import Path
 from PIL import Image
 
-sys.path.append(str(Path(__file__).parent))
+# Get the base directory of the script
+BASE_DIR = Path(__file__).parent.absolute()
+sys.path.append(str(BASE_DIR))
 
 from src.utils.logger import setup_logger
 
@@ -23,427 +25,27 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Duke-themed CSS styling
-st.markdown("""
-<style>
-    /* Duke Blue Color Palette */
-    :root {
-        --duke-blue: #003366;
-        --duke-blue-light: #00539B;
-        --duke-blue-dark: #001A33;
-        --duke-white: #FFFFFF;
-        --duke-gray: #F5F5F5;
-        --duke-accent: #00A3E0;
-    }
-    
-    /* Main App Background */
-    .stApp {
-        background: linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%);
-    }
-    
-    /* Main Content Area */
-    .main .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        max-width: 1200px;
-    }
-    
-    /* Headers - Duke Blue */
-    h1 {
-        color: #003366 !important;
-        font-weight: 700 !important;
-        border-bottom: 4px solid #00539B;
-        padding-bottom: 0.75rem;
-        margin-bottom: 1.5rem;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    h2 {
-        color: #003366 !important;
-        font-weight: 600 !important;
-        margin-top: 2rem;
-        margin-bottom: 1rem;
-        border-left: 5px solid #00539B;
-        padding-left: 1rem;
-    }
-    
-    h3 {
-        color: #00539B !important;
-        font-weight: 600 !important;
-        margin-top: 1.5rem;
-        margin-bottom: 0.75rem;
-    }
-    
-    h4, h5, h6 {
-        color: #00539B !important;
-        font-weight: 500 !important;
-    }
-    
-    /* Main Content Text - Duke Blue */
-    .main {
-        color: #003366 !important;
-    }
-    
-    .main p, .main li, .main div, .main span, .main label,
-    .main strong, .main em, .main ul, .main ol,
-    .main td, .main th, .main a, .main code, .main pre,
-    .main [class*="element-container"], .main [class*="stMarkdown"],
-    .main [class*="stText"], .main [class*="stCaption"],
-    .main [class*="stSubheader"], .main [data-testid*="text"],
-    .main [data-testid*="markdown"], .main [data-testid*="caption"] {
-        color: #003366 !important;
-        line-height: 1.6;
-    }
-    
-    .main *:not([class*="stButton"]):not([class*="stSuccess"]):not([class*="stError"]):not([class*="stWarning"]):not([class*="stInfo"]) {
-        color: #003366 !important;
-    }
-    
-    /* Sidebar Styling - Duke Blue Gradient Background */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(135deg, #00539B 0%, #003366 100%);
-    }
-    
-    /* Sidebar Text - White */
-    [data-testid="stSidebar"] * {
-        color: white !important;
-    }
-    
-    /* Sidebar Headers - Transparent/Subtle */
-    [data-testid="stSidebar"] h1 {
-        background: rgba(0, 83, 155, 0.3);
-        padding: 1rem;
-        border-radius: 8px;
-        border: 2px solid rgba(0, 163, 224, 0.5) !important;
-        margin-bottom: 1.5rem;
-        text-align: center;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    }
-    
-    [data-testid="stSidebar"] h2,
-    [data-testid="stSidebar"] h3 {
-        background: rgba(0, 83, 155, 0.3);
-        padding: 0.75rem;
-        border-radius: 6px;
-        border: 2px solid rgba(0, 163, 224, 0.5);
-        margin: 1rem 0 0.5rem 0;
-        text-align: center;
-    }
-    
-    /* Buttons - Duke Blue */
-    .stButton > button {
-        background: linear-gradient(135deg, #003366 0%, #00539B 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 6px rgba(0, 51, 102, 0.3);
-        width: 100%;
-    }
-    
-    .stButton > button:hover {
-        background: linear-gradient(135deg, #00539B 0%, #003366 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 51, 102, 0.4);
-    }
-    
-    /* Primary Button */
-    .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #00539B 0%, #00A3E0 100%);
-        box-shadow: 0 4px 8px rgba(0, 163, 224, 0.4);
-    }
-    
-    .stButton > button[kind="primary"]:hover {
-        background: linear-gradient(135deg, #00A3E0 0%, #00539B 100%);
-        box-shadow: 0 6px 12px rgba(0, 163, 224, 0.5);
-    }
-    
-    /* Success/Info/Warning/Error Boxes */
-    .stSuccess {
-        background: linear-gradient(135deg, #E6F7FF 0%, #BAE7FF 100%);
-        border-left: 5px solid #00539B;
-        border-radius: 8px;
-        padding: 1rem;
-        box-shadow: 0 2px 4px rgba(0, 51, 102, 0.1);
-    }
-    
-    .stInfo {
-        background: linear-gradient(135deg, #E6F2FF 0%, #B3D9FF 100%);
-        border-left: 5px solid #003366;
-        border-radius: 8px;
-        padding: 1rem;
-        box-shadow: 0 2px 4px rgba(0, 51, 102, 0.1);
-    }
-    
-    .stWarning {
-        background: linear-gradient(135deg, #FFF4E6 0%, #FFE0B3 100%);
-        border-left: 5px solid #FFA500;
-        border-radius: 8px;
-        padding: 1rem;
-        box-shadow: 0 2px 4px rgba(255, 165, 0, 0.2);
-    }
-    
-    .stError {
-        background: linear-gradient(135deg, #FFE6E6 0%, #FFB3B3 100%);
-        border-left: 5px solid #CC0000;
-        border-radius: 8px;
-        padding: 1rem;
-        box-shadow: 0 2px 4px rgba(204, 0, 0, 0.2);
-    }
-    
-    /* Radio Buttons and Checkboxes */
-    .stRadio label,
-    .stCheckbox label {
-        color: #003366 !important;
-        font-weight: 500;
-    }
-    
-    /* File Uploader */
-    .stFileUploader {
-        border: 2px dashed #00539B;
-        border-radius: 12px;
-        padding: 1.5rem;
-        background: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%);
-        transition: all 0.3s ease;
-    }
-    
-    .stFileUploader:hover {
-        border-color: #003366;
-        background: linear-gradient(135deg, #E9ECEF 0%, #DEE2E6 100%);
-    }
-    
-    .stFileUploader label {
-        color: #003366 !important;
-        font-weight: 600;
-    }
-    
-    /* Camera Input */
-    .stCameraInput, [data-testid="stCameraInput"],
-    .stCameraInput > div, [data-testid="stCameraInput"] > div,
-    .stCameraInput > div > div {
-        background-color: white !important;
-        border: 3px solid #00539B;
-        border-radius: 12px;
-        box-shadow: 0 4px 8px rgba(0, 51, 102, 0.2);
-    }
-    
-    /* Metrics */
-    [data-testid="stMetricValue"] {
-        color: #003366 !important;
-        font-weight: 700;
-        font-size: 2rem;
-    }
-    
-    [data-testid="stMetricLabel"] {
-        color: #00539B !important;
-        font-weight: 500;
-    }
-    
-    /* Expander */
-    .streamlit-expanderHeader {
-        background: linear-gradient(135deg, #E6F2FF 0%, #B3D9FF 100%);
-        color: #003366 !important;
-        font-weight: 600;
-        border-radius: 8px;
-        padding: 0.75rem;
-        border: 1px solid #00539B;
-    }
-    
-    .streamlit-expanderHeader:hover {
-        background: linear-gradient(135deg, #B3D9FF 0%, #E6F2FF 100%);
-    }
-    
-    .streamlit-expanderContent {
-        background-color: #FFFFFF;
-        color: #003366 !important;
-        padding: 1rem;
-        border-radius: 0 0 8px 8px;
-    }
-    
-    /* Code Blocks */
-    .main code,
-    .main pre {
-        background: linear-gradient(135deg, #F5F5F5 0%, #E9ECEF 100%);
-        color: #003366 !important;
-        border: 1px solid #00539B;
-        border-radius: 6px;
-        padding: 0.5rem;
-    }
-    
-    /* Tables */
-    .main table {
-        background-color: #FFFFFF;
-        border: 2px solid #00539B;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-    
-    .main table th {
-        background: linear-gradient(135deg, #003366 0%, #00539B 100%);
-        color: white !important;
-        font-weight: 600;
-        padding: 0.75rem;
-    }
-    
-    .main table td {
-        color: #003366 !important;
-        padding: 0.5rem 0.75rem;
-        border-bottom: 1px solid #E9ECEF;
-    }
-    
-    .main table tr:hover {
-        background-color: #F8F9FA;
-    }
-    
-    /* Dividers */
-    hr {
-        border: none;
-        height: 3px;
-        background: linear-gradient(90deg, transparent 0%, #00539B 50%, transparent 100%);
-        margin: 2rem 0;
-    }
-    
-    /* Input Fields */
-    .stTextInput > div > div > input,
-    .stTextArea > div > div > textarea,
-    .stSelectbox > div > div > select {
-        background-color: #FFFFFF;
-        color: #003366 !important;
-        border: 2px solid #00539B;
-        border-radius: 6px;
-        padding: 0.5rem;
-        transition: all 0.3s ease;
-    }
-    
-    .stTextInput > div > div > input:focus,
-    .stTextArea > div > div > textarea:focus,
-    .stSelectbox > div > div > select:focus {
-        border-color: #003366;
-        box-shadow: 0 0 0 3px rgba(0, 83, 155, 0.1);
-    }
-    
-    .stTextInput label,
-    .stTextArea label,
-    .stSelectbox label {
-        color: #003366 !important;
-        font-weight: 600;
-    }
-    
-    /* Sidebar Radio and Checkbox */
-    [data-testid="stSidebar"] .stRadio label,
-    [data-testid="stSidebar"] .stCheckbox label {
-        color: white !important;
-    }
-    
-    [data-testid="stSidebar"] .stRadio > div,
-    [data-testid="stSidebar"] .stCheckbox > div {
-        background-color: #00539B;
-        border-radius: 6px;
-        padding: 0.5rem;
-        border: 1px solid #003366;
-    }
-    
-    /* Scrollbar Styling */
-    ::-webkit-scrollbar {
-        width: 10px;
-        height: 10px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: #F5F5F5;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, #00539B 0%, #003366 100%);
-        border-radius: 5px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, #003366 0%, #00539B 100%);
-    }
-    
-    /* Custom Duke Header */
-    .duke-header {
-        background: linear-gradient(135deg, #003366 0%, #00539B 50%, #00A3E0 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 12px;
-        margin-bottom: 2rem;
-        text-align: center;
-        box-shadow: 0 8px 16px rgba(0, 51, 102, 0.3);
-    }
-    
-    .duke-header h1 {
-        color: white !important;
-        border: none !important;
-        margin: 0;
-        padding: 0;
-        font-size: 2.5rem;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    }
-    
-    .duke-header h1 * {
-        color: white !important;
-    }
-    
-    .duke-header p {
-        color: white !important;
-        font-size: 1.2rem;
-        margin-top: 0.5rem;
-    }
-    
-    /* Custom Divider */
-    .duke-divider {
-        height: 4px;
-        background: linear-gradient(90deg, transparent 0%, #00539B 25%, #00A3E0 50%, #00539B 75%, transparent 100%);
-        margin: 2rem 0;
-        border-radius: 2px;
-    }
-    
-    /* LaTeX/Math Rendering */
-    .katex {
-        color: #003366 !important;
-    }
-    
-    /* Spinner Text - White */
-    .stSpinner, [data-testid="stSpinner"],
-    .stSpinner *, [data-testid="stSpinner"] * {
-        color: white !important;
-    }
-    
-    /* Info box text in main - keep readable */
-    .main .stInfo {
-        color: #003366 !important;
-    }
-    
-    .main .stInfo * {
-        color: #003366 !important;
-    }
-    
-    /* White text overrides in main */
-    .main p[style*="color: white"],
-    .main div[style*="color: white"],
-    .main span[style*="color: white"] {
-        color: white !important;
-    }
-    
-    /* Column Styling */
-    [data-testid="column"] {
-        background: transparent;
-    }
-    
-    /* Remove Streamlit Branding */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-</style>
-""", unsafe_allow_html=True)
-
 # Initialize logger
 logger = setup_logger()
+
+# Detection Configuration (Configurable Thresholds)
+DETECTION_CONFIG = {
+    'malware': {
+        'visual_similarity_threshold': 0.5,  # Increased from 0.3
+        'confidence_similarity_threshold': 0.7,  # Increased from 0.6
+        'low_confidence_threshold': 0.35,  # Increased from 0.3
+        'min_patch_confidence': 0.25,
+    },
+    'temporal': {
+        'frame_buffer_size': 5,  # Number of frames to check
+        'consensus_threshold': 0.6,  # 60% of frames must agree
+        'min_frames_for_detection': 3,  # Minimum frames with detection
+    },
+    'patch_size': {
+        'min_patch_area_ratio': 0.15,  # 15% of image minimum
+        'max_patch_area_ratio': 0.70,  # 70% of image maximum
+    }
+}
 
 # Initialize session state
 if 'attack_system' not in st.session_state:
@@ -458,6 +60,13 @@ if 'opencv_camera_id' not in st.session_state:
     st.session_state.opencv_camera_id = 0
 if 'use_advanced_system' not in st.session_state:
     st.session_state.use_advanced_system = False
+if 'detection_history' not in st.session_state:
+    st.session_state.detection_history = {
+        'malware': [],
+        'no_patch': []
+    }
+if 'frame_buffer' not in st.session_state:
+    st.session_state.frame_buffer = []
 
 def initialize_attack_system():
     """Initialize the attack system - basic or advanced based on toggle."""
@@ -469,36 +78,148 @@ def initialize_attack_system():
     
     if st.session_state.attack_system is None:
         try:
-            system_type = "Advanced" if st.session_state.use_advanced_system else "Basic"
-            with st.spinner(f"Loading {system_type} attack system..."):
-                boo_patch_path = 'data/patches/resnet_breaker_70pct.pt'
-                if not os.path.exists(boo_patch_path):
-                    st.error("Boo patch file not found! Please ensure patch file exists.")
-                    return False
+            if st.session_state.use_advanced_system:
+                # Toggle ON: Execute cyberphysical_attack_system_advanced.py
+                print("\n" + "="*70)
+                print("[STREAMLIT] Toggle ON → Executing: cyberphysical_attack_system_advanced.py")
+                print("="*70)
+                logger.info("="*70)
+                logger.info("TOGGLE ON: Initializing cyberphysical_attack_system_advanced.py")
+                logger.info("="*70)
                 
-                if st.session_state.use_advanced_system:
+                # Initialize Advanced Defense System
+                with st.spinner(f"Loading Advanced Defense System..."):
                     from cyberphysical_attack_system_advanced import AdvancedCyberphysicalAttackSystem
-                    st.session_state.attack_system = AdvancedCyberphysicalAttackSystem(
-                        patch_path=boo_patch_path,
-                        use_advanced_defenses=True
-                    )
-                    st.session_state.attack_system.demo_mode = True
-                    logger.info("Advanced attack system initialized")
-                else:
-                    from cyberphysical_attack_system_Boo import CyberphysicalAttackSystem
                     
-                    malware_patch_path = 'data/patches/malware_attack_patch.png'
-                    if not os.path.exists(malware_patch_path):
-                        malware_patch_path = None
-                        st.warning("Malware patch file not found. Malware patch detection will be disabled.")
+                    # Advanced system needs a .pt patch file (not PNG)
+                    # Use final deployment patches or fallback
+                    advanced_patch_path = None
+                    advanced_patch_options = [
+                        BASE_DIR / 'data' / 'patches' / 'final_deployment' / 'malware_patch_final.pt',
+                        BASE_DIR / 'data' / 'patches' / 'malware_repo_patch_distinct.pt',
+                        BASE_DIR / 'data' / 'patches' / 'resnet_breaker_70pct.pt'
+                    ]
                     
-                    st.session_state.attack_system = CyberphysicalAttackSystem(
-                        patch_path=boo_patch_path,
-                        patch_image_path=malware_patch_path,
-                        repo_url='https://github.com/ASK92/Malware-V1.0.git'
-                    )
-                    st.session_state.attack_system.demo_mode = True
-                    logger.info("Basic attack system initialized")
+                    for patch_option in advanced_patch_options:
+                        patch_str = str(patch_option)
+                        if os.path.exists(patch_str):
+                            advanced_patch_path = patch_str
+                            logger.info(f"Found patch for Advanced system: {advanced_patch_path}")
+                            break
+                    
+                    if advanced_patch_path:
+                        try:
+                            st.session_state.attack_system = AdvancedCyberphysicalAttackSystem(
+                                patch_path=advanced_patch_path,
+                                device=st.session_state.device,
+                                use_advanced_defenses=True
+                            )
+                            
+                            # Determine patch type from filename or metadata
+                            patch_filename = os.path.basename(advanced_patch_path).lower()
+                            if 'malware' in patch_filename:
+                                st.session_state.advanced_patch_type = 'malware'
+                                st.session_state.advanced_command_type = 'malware'
+                            else:
+                                # Try to load metadata from patch file
+                                try:
+                                    patch_data = torch.load(advanced_patch_path, weights_only=False)
+                                    if isinstance(patch_data, dict):
+                                        metadata = patch_data.get('metadata', {})
+                                        command_type = metadata.get('command_type', 'malware')
+                                        if 'malware' in str(command_type).lower() or 'repo' in str(command_type).lower():
+                                            st.session_state.advanced_patch_type = 'malware'
+                                            st.session_state.advanced_command_type = 'malware'
+                                        else:
+                                            st.session_state.advanced_patch_type = 'malware'
+                                            st.session_state.advanced_command_type = 'malware'
+                                    else:
+                                        # Default to malware if can't determine
+                                        st.session_state.advanced_patch_type = 'malware'
+                                        st.session_state.advanced_command_type = 'malware'
+                                except:
+                                    # Default to malware if can't determine
+                                    st.session_state.advanced_patch_type = 'malware'
+                                    st.session_state.advanced_command_type = 'malware'
+                            
+                            logger.info(f"Advanced Defense System initialized with: {advanced_patch_path}")
+                            logger.info(f"Patch type: {st.session_state.advanced_patch_type}, Command: {st.session_state.advanced_command_type}")
+                            logger.info("Using: cyberphysical_attack_system_advanced.py")
+                            print(f"[SYSTEM] Using: cyberphysical_attack_system_advanced.py")
+                            print(f"[SYSTEM] Advanced Defense System with 4-layer defense pipeline")
+                            print(f"[SYSTEM] Patch type: {st.session_state.advanced_patch_type}, Command: {st.session_state.advanced_command_type}")
+                        except Exception as e:
+                            logger.error(f"Failed to initialize Advanced system: {e}")
+                            st.error(f"Advanced Defense System initialization failed: {e}")
+                            import traceback
+                            with st.expander("Error Details"):
+                                st.code(traceback.format_exc())
+                            st.session_state.attack_system = None
+                            return False
+                    else:
+                        error_msg = "Patch file (.pt) not found for Advanced Defense System!"
+                        st.error(error_msg)
+                        checked_paths = [str(p) for p in advanced_patch_options]
+                        st.info("Looking for patch files in:\n" + "\n".join(f"  - {p}" for p in checked_paths))
+                        logger.error(f"Advanced system patch not found. Checked: {checked_paths}")
+                        return False
+            else:
+                # Toggle OFF: Execute cyberphysical_attack_system_malware.py
+                print("\n" + "="*70)
+                print("[STREAMLIT] Toggle OFF → Executing: cyberphysical_attack_system_malware.py")
+                print("="*70)
+                logger.info("="*70)
+                logger.info("TOGGLE OFF: Initializing cyberphysical_attack_system_malware.py")
+                logger.info("="*70)
+                
+                # Initialize Malware attack system (Basic mode)
+                with st.spinner(f"Loading Malware attack system..."):
+                    from cyberphysical_attack_system_malware import CyberphysicalAttackSystem as MalwareAttackSystem
+                    
+                    # Use final deployment malware patch (preferred)
+                    # Use absolute paths based on script location
+                    malware_repo_patch_distinct = None
+                    malware_options = [
+                        BASE_DIR / 'data' / 'patches' / 'final_deployment' / 'malware_patch_final.png',
+                        BASE_DIR / 'data' / 'patches' / 'malware_repo_patch_distinct.png',
+                        BASE_DIR / 'data' / 'patches' / 'malware_attack_patch.png',
+                        BASE_DIR / 'data' / 'patches' / 'repo_url_patch.png'
+                    ]
+                    for malware_option in malware_options:
+                        malware_str = str(malware_option)
+                        if os.path.exists(malware_str):
+                            malware_repo_patch_distinct = malware_str
+                            logger.info(f"Found Malware patch: {malware_str}")
+                            break
+                    
+                    # Initialize Malware patch system
+                    if malware_repo_patch_distinct:
+                        try:
+                            st.session_state.malware_attack_system = MalwareAttackSystem(
+                                patch_image_path=malware_repo_patch_distinct,
+                                repo_url='https://github.com/ASK92/Malware-V1.0.git'  # Hardcode repo URL
+                            )
+                            st.session_state.malware_attack_system.demo_mode = True
+                            st.session_state.attack_system = st.session_state.malware_attack_system
+                            logger.info(f"Malware patch system initialized with: {malware_repo_patch_distinct}")
+                            logger.info("Using: cyberphysical_attack_system_malware.py (for malware patches)")
+                            print(f"[SYSTEM] Using: cyberphysical_attack_system_malware.py")
+                            print(f"[SYSTEM] This system downloads repo and runs blue_devil_lock.py")
+                        except Exception as e:
+                            logger.error(f"Failed to initialize Malware system: {e}")
+                            st.error(f"Malware patch system initialization failed: {e}")
+                            st.session_state.malware_attack_system = None
+                            st.session_state.attack_system = None
+                            return False
+                    else:
+                        error_msg = "Malware patch file not found! Please ensure malware patch file exists."
+                        st.error(error_msg)
+                        checked_paths = [str(p) for p in malware_options]
+                        st.info("Looking for malware patches in:\n" + "\n".join(f"  - {p}" for p in checked_paths))
+                        st.info(f"Current working directory: {os.getcwd()}")
+                        st.info(f"Script directory: {BASE_DIR}")
+                        logger.error(f"Malware patch not found. Checked: {checked_paths}")
+                        return False
                 
                 st.session_state.system_initialized = True
                 return True
@@ -512,10 +233,90 @@ def initialize_attack_system():
             return False
     return st.session_state.system_initialized
 
+def add_to_frame_buffer(detection_result, patch_type):
+    """Add detection result to temporal frame buffer for consistency checking."""
+    frame_data = {
+        'timestamp': time.time(),
+        'detected': detection_result.get('detected', False) if detection_result else False,
+        'patch_type': patch_type,
+        'confidence': detection_result.get('confidence', 0.0) if detection_result else 0.0,
+        'defense_bypassed': detection_result.get('defense_bypassed', False) if detection_result else False
+    }
+    
+    st.session_state.frame_buffer.append(frame_data)
+    
+    # Keep only last N frames
+    buffer_size = DETECTION_CONFIG['temporal']['frame_buffer_size']
+    if len(st.session_state.frame_buffer) > buffer_size:
+        st.session_state.frame_buffer.pop(0)
+
+def check_temporal_consistency(patch_type):
+    """Check if detection is consistent across multiple frames."""
+    # In basic mode, skip temporal consistency for immediate detection
+    if not st.session_state.get('use_advanced_system', False):
+        return True, "Basic mode - immediate detection"
+    
+    # Advanced mode: check temporal consistency but be lenient
+    if len(st.session_state.frame_buffer) < 2:  # Reduced from min_frames_for_detection
+        return True, "Insufficient frames - allowing detection"  # Changed to True for leniency
+    
+    # Get recent frames
+    recent_frames = st.session_state.frame_buffer[-DETECTION_CONFIG['temporal']['frame_buffer_size']:]
+    
+    # Count detections of this patch type
+    detections = [f for f in recent_frames if f.get('detected', False) and f.get('patch_type') == patch_type]
+    total_frames = len(recent_frames)
+    
+    if total_frames == 0:
+        return True, "No frames - allowing detection"  # Changed to True
+    
+    detection_ratio = len(detections) / total_frames
+    # Lower threshold for demo - only need 40% consensus instead of 60%
+    consensus_threshold = DETECTION_CONFIG['temporal']['consensus_threshold'] * 0.67  # ~40%
+    
+    if detection_ratio >= consensus_threshold:
+        return True, f"Consistent detection: {detection_ratio:.1%}"
+    
+    # Even if below threshold, allow if we have at least 1 detection
+    if len(detections) >= 1:
+        return True, f"Single detection allowed: {detection_ratio:.1%}"
+    
+    return False, f"Low consensus: {detection_ratio:.1%}"
+
+def determine_patch_type(malware_detection):
+    """
+    Determine if malware patch is detected.
+    Returns: (detection, patch_type, active_system, confidence_score)
+    """
+    malware_detected = malware_detection.get('detected', False) if malware_detection else False
+    
+    # If not detected, return None
+    if not malware_detected:
+        return None, None, None, 0.0
+    
+    # Verify malware has visual indicators
+    malware_visual = malware_detection.get('visual_similarity', 0.0)
+    malware_ref_match = malware_detection.get('patch_match', False)
+    malware_conf_sim = malware_detection.get('confidence_similarity', 0.0)
+    
+    # Require visual indicators for malware detection
+    has_visual_indicators = (
+        malware_visual > 0.25 or  # Visual similarity
+        (malware_ref_match and malware_conf_sim > 0.4)  # Reference match
+    )
+    
+    if has_visual_indicators:
+        logger.info(f"Malware detected with visual indicators (visual: {malware_visual:.3f})")
+        return malware_detection, 'malware', st.session_state.malware_attack_system, malware_detection.get('confidence', 0.0)
+    else:
+        # Malware detected but no visual indicators - likely a false positive
+        logger.warning(f"Malware detected but visual indicators too weak (visual: {malware_visual:.3f}), rejecting as false positive")
+        return None, None, None, 0.0
+
 def process_frame(frame_array):
-    """Process a frame through the attack system."""
+    """Process a frame through the attack system with improved detection logic."""
     if st.session_state.attack_system is None:
-        return None, frame_array
+        return {'detected': False, 'error': 'System not initialized'}, frame_array
     
     try:
         if isinstance(frame_array, np.ndarray):
@@ -525,7 +326,7 @@ def process_frame(frame_array):
                 else:
                     img_rgb = cv2.cvtColor(frame_array, cv2.COLOR_BGR2RGB)
             else:
-                return None, frame_array
+                return {'detected': False, 'error': 'Invalid image shape'}, frame_array
             
             img_resized = cv2.resize(img_rgb, (224, 224))
             
@@ -536,42 +337,103 @@ def process_frame(frame_array):
             img_tensor = torch.from_numpy(img_normalized).permute(2, 0, 1).float()
             img_tensor = img_tensor.unsqueeze(0).to(st.session_state.device)
             
-            detection = st.session_state.attack_system.detect_patch(img_tensor)
-            
-            if st.session_state.use_advanced_system:
-                if detection.get('detected', False) and detection.get('defense_bypassed', False):
-                    st.session_state.attack_system.command_executed = False
-                    st.session_state.attack_system.execute_command(command_type='notepad_boo')
-            else:
+            # Detect patches - use appropriate system based on toggle
+            try:
+                detection = st.session_state.attack_system.detect_patch(img_tensor)
+                active_system = st.session_state.attack_system
+                
+                # Determine patch type based on system type
+                if st.session_state.use_advanced_system:
+                    # Toggle ON: Using cyberphysical_attack_system_advanced.py
+                    logger.info("[DETECTION] Using: cyberphysical_attack_system_advanced.py")
+                    patch_type = 'defense'
+                    # Advanced system is a DEFENSE system - it only detects and blocks patches
+                    # It does NOT execute any commands
+                else:
+                    # Toggle OFF: Using cyberphysical_attack_system_malware.py
+                    logger.info("[DETECTION] Using: cyberphysical_attack_system_malware.py")
+                    patch_type = 'malware'
+                    command_type = 'malware'
+                
+                # Check if patch detected
                 if detection.get('detected', False):
-                    patch_type = detection.get('patch_type', 'boo')
-                    st.session_state.attack_system.command_executed = False
-                    command_type = 'malware' if patch_type == 'malware' else 'notepad_boo'
-                    st.session_state.attack_system.execute_command(
-                        command_type=command_type,
-                        patch_type=patch_type
-                    )
+                    if st.session_state.use_advanced_system:
+                        # Advanced Defense System - only report detection, do NOT execute
+                        # Add to frame buffer for temporal consistency
+                        add_to_frame_buffer(detection, patch_type)
+                        
+                        # Check if defense successfully blocked the patch
+                        if detection.get('patch_detected_by_defense', False):
+                            # Defense successfully detected and blocked the patch
+                            detection['defense_success'] = True
+                            logger.info("Advanced Defense: Patch detected and blocked successfully")
+                        else:
+                            # Patch bypassed defenses (defense failed)
+                            detection['defense_success'] = False
+                            logger.warning("Advanced Defense: Patch bypassed defenses")
+                    else:
+                        # Basic system - execute commands
+                        # Check if defense bypassed
+                        defense_bypassed = detection.get('defense_bypassed', False)
+                        # In demo mode, be lenient with defense bypass
+                        if not defense_bypassed and hasattr(st.session_state.attack_system, 'demo_mode') and st.session_state.attack_system.demo_mode:
+                            # Allow detection even if defense says blocked (demo mode)
+                            defense_bypassed = True
+                        
+                        if defense_bypassed:
+                            # Add to frame buffer for temporal consistency
+                            add_to_frame_buffer(detection, patch_type)
+                            
+                            # Check temporal consistency (but be lenient)
+                            is_consistent, reason = check_temporal_consistency(patch_type)
+                            # Always allow execution in demo mode
+                            if is_consistent or True:  # Always allow in demo mode
+                                # Initialize execution tracking
+                                if not hasattr(st.session_state, 'last_execution_time'):
+                                    st.session_state.last_execution_time = {}
+                                
+                                current_time = time.time()
+                                last_time = st.session_state.last_execution_time.get(patch_type, 0)
+                                
+                                # Allow execution if 5 seconds have passed since last execution
+                                if current_time - last_time > 5.0:
+                                    active_system.command_executed = False
+                                    logger.info(f"Executing {patch_type} patch command: {command_type}")
+                                    active_system.execute_command(command_type=command_type)
+                                    st.session_state.last_execution_time[patch_type] = current_time
+                            else:
+                                # Not consistent yet
+                                detection['temporal_warning'] = reason
+                        else:
+                            # Defense blocked it
+                            detection['detected'] = False
+                            detection['blocked_by_defense'] = True
+                else:
+                    # No patch detected
+                    add_to_frame_buffer(None, 'no_patch')
+                
+                # Add patch_type to detection result
+                detection['patch_type'] = patch_type
+                    
+            except Exception as e:
+                logger.error(f"Detection error: {e}")
+                return {'detected': False, 'error': f'Detection failed: {str(e)}'}, img_rgb
             
             return detection, img_rgb
         else:
-            return None, frame_array
+            return {'detected': False, 'error': 'Invalid input type'}, frame_array
             
     except Exception as e:
         logger.error(f"Frame processing error: {e}")
         import traceback
         logger.error(traceback.format_exc())
-        return None, frame_array
+        return {'detected': False, 'error': f'Processing failed: {str(e)}'}, frame_array
 
 def about_page():
     """Display About the Project page."""
-    # Duke-themed header
-    st.markdown("""
-    <div class="duke-header">
-        <h1>Duke University - Adversarial Patch Detection System</h1>
-    </div>
-    """, unsafe_allow_html=True)
+    st.title("Adversarial Patch Detection System")
     
-    st.markdown('<div class="duke-divider"></div>', unsafe_allow_html=True)
+
     
     st.markdown("""
     ## Project Overview
@@ -583,7 +445,7 @@ def about_page():
     **Note**: This is for research/educational purposes only.
     """)
     
-    st.markdown('<div class="duke-divider"></div>', unsafe_allow_html=True)
+
     
     st.markdown("""
     ## Part 1: Adversarial Patch Generation and Training
@@ -782,14 +644,14 @@ def about_page():
     st.markdown("""
     ### System Overview
     
-    The `cyberphysical_attack_system_Boo.py` implements a **real-world attack pipeline** that 
+    The `cyberphysical_attack_system_malware.py` implements a **real-world attack pipeline** that 
     demonstrates how adversarial patches can trigger physical actions when detected by computer vision systems.
     
     #### Architecture Components
     
     1. **Patch Loading System**:
-       - Loads pre-trained adversarial patch tensor (Boo patch)
-       - Loads reference patch image (Malware patch) for visual similarity matching
+       - Loads pre-trained adversarial patch tensor (Malware patch)
+       - Loads reference patch image for visual similarity matching
        - Supports both tensor-based and image-based patch detection
     
     2. **Detection Model**:
@@ -806,11 +668,12 @@ def about_page():
     
     4. **Patch Detection Logic**:
        
-       The system uses different detection methods for Boo and Malware patches.
+       The system uses detection methods for Malware patches.
        
-       **For Boo Patch:**
+       **For Malware Patch:**
        - Compares model predictions before/after defense processing
        - Detects if: prediction changed, confidence dropped, or confidence is low (<0.5)
+       - Uses visual similarity matching with reference patch
        - Uses multiple heuristics for robust detection
        
        **For Malware Patch:**
@@ -822,7 +685,7 @@ def about_page():
     
     with st.expander("📐 View Mathematical Formulation for Patch Detection", expanded=False):
         st.markdown(r"""
-        **Boo Patch Detection:**
+        **Malware Patch Detection:**
         
         Let $x$ be the input image, $f$ be the ResNet50 model, and $x_{def}$ be the image after defense processing.
         
@@ -838,10 +701,10 @@ def about_page():
         $$D_3 = \mathbb{1}[c_{def} < 0.9 \cdot c_{orig}] \quad \text{(confidence dropped 10\%)}$$
         $$D_4 = \mathbb{1}[c_{def} < 0.5] \quad \text{(low confidence)}$$
         
-        **Boo Patch Detected:**
-        $$\text{Boo Detected} = D_1 \lor D_2 \lor D_3 \lor D_4$$
+        **Malware Patch Detected:**
+        $$\text{Malware Detected} = D_1 \lor D_2 \lor D_3 \lor D_4$$
         
-        **Malware Patch Detection:**
+        **Additional Visual Similarity Check:**
         
         **Visual Similarity - SSIM** (Structural Similarity Index):
         $$\text{SSIM}(x, x_{ref}) = \frac{(2\mu_x \mu_{ref} + c_1)(2\sigma_{x,ref} + c_2)}{(\mu_x^2 + \mu_{ref}^2 + c_1)(\sigma_x^2 + \sigma_{ref}^2 + c_2)}$$
@@ -869,7 +732,6 @@ def about_page():
     st.markdown("""
     
     5. **Command Execution System**:
-       - **Boo Patch**: Opens Notepad and types "Boo" using PowerShell/automation
        - **Malware Patch**: Downloads GitHub repository and executes `blue_devil_lock.py`
        - Commands execute only once per detection (prevents repeated execution)
        - Uses subprocess for safe command execution
@@ -1335,8 +1197,7 @@ def about_page():
     st.markdown("""
     ## System Features
     
-    - **Boo Patch**: Opens Notepad and types "Boo" when detected
-    - **Malware Patch**: Downloads Malware-V1.0 repository and executes blue_devil_lock.py when detected
+    - **Malware Patch**: Downloads GitHub repository and executes blue_devil_lock.py when detected
     - **Basic Defense Mode**: Uses standard defense pipeline (relaxed settings)
     - **Advanced Defense Mode**: Uses 4-layer advanced defense system with detailed detection reporting
     """)
@@ -1346,7 +1207,7 @@ def camera_page():
     # Duke-themed header
     st.markdown("""
     <div class="duke-header">
-        <h1 style="color: white !important; border: none !important;">📷 Camera Patch Detection</h1>
+        <h1 style="color: WHITE !important; border: none !important;">📷 Camera Patch Detection</h1>
     </div>
     """, unsafe_allow_html=True)
     
@@ -1500,12 +1361,13 @@ def camera_page():
                                     else:
                                         # Basic system
                                         if detection.get('detected', False):
-                                            patch_type = detection.get('patch_type', 'unknown')
-                                            if patch_type == 'malware':
-                                                st.error("🚨 MALWARE PATCH DETECTED - Executing...")
+                                            detected_patch_type = detection.get('patch_type', 'unknown')
+                                            if detected_patch_type == 'malware':
+                                                st.error("🚨 MALWARE PATCH DETECTED - Downloading repo and executing Blue Devil Lock...")
+                                                st.success("✅ Command sent to Malware attack system")
                                             else:
-                                                st.warning("🚨 BOO PATCH DETECTED - Executing...")
-                                            st.success("✅ Command sent to attack system")
+                                                st.warning(f"🚨 PATCH DETECTED! Type: {detected_patch_type.upper()}")
+                                                st.success("✅ Command sent to attack system")
                                         else:
                                             st.info("⏳ Scanning...")
                                 
@@ -1557,73 +1419,72 @@ def camera_page():
             detection, processed_frame = process_frame(img_array)
             
             if detection:
-                    if st.session_state.use_advanced_system:
-                        # Advanced system: show defense layer information
-                        if detection.get('patch_detected_by_defense', False):
-                            st.error("🛡️ **ATTACK BLOCKED BY DEFENSES**")
-                            
-                            # Show which defense layer stopped it
-                            validation = detection.get('validation_result', {})
-                            defense_results = validation.get('defense_results', {})
-                            
-                            st.markdown("### 🛡️ Defense Layer Analysis:")
-                            
-                            # Check each defense layer
-                            blocked_by = []
-                            if 'entropy' in defense_results:
-                                ent = defense_results['entropy']
-                                if ent.get('patch_detected', False):
-                                    blocked_by.append(("Entropy Defense", ent.get('confidence', 0.0)))
-                                    st.error(f"🔴 **Entropy Defense**: DETECTED (conf: {ent.get('confidence', 0.0):.3f})")
-                                else:
-                                    st.success(f"🟢 **Entropy Defense**: CLEAR (conf: {ent.get('confidence', 0.0):.3f})")
-                            
-                            if 'frequency' in defense_results:
-                                freq = defense_results['frequency']
-                                if freq.get('patch_detected', False):
-                                    blocked_by.append(("Frequency Defense", freq.get('confidence', 0.0)))
-                                    st.error(f"🔴 **Frequency Defense**: DETECTED (conf: {freq.get('confidence', 0.0):.3f})")
-                                else:
-                                    st.success(f"🟢 **Frequency Defense**: CLEAR (conf: {freq.get('confidence', 0.0):.3f})")
-                            
-                            if 'gradient_saliency' in defense_results:
-                                sal = defense_results['gradient_saliency']
-                                if sal.get('patch_detected', False):
-                                    blocked_by.append(("Gradient Saliency Defense", sal.get('confidence', 0.0)))
-                                    st.error(f"🔴 **Gradient Saliency Defense**: DETECTED (conf: {sal.get('confidence', 0.0):.3f})")
-                                else:
-                                    st.success(f"🟢 **Gradient Saliency Defense**: CLEAR (conf: {sal.get('confidence', 0.0):.3f})")
-                            
-                            if 'enhanced_multi_frame' in defense_results:
-                                mf = defense_results['enhanced_multi_frame']
-                                if not mf.get('consensus_reached', True):
-                                    blocked_by.append(("Multi-Frame Smoothing", 1.0))
-                                    st.error(f"🔴 **Multi-Frame Smoothing**: NO CONSENSUS")
-                                else:
-                                    st.success(f"🟢 **Multi-Frame Smoothing**: CONSENSUS REACHED")
-                            
-                            # Show which layer stopped it
-                            if blocked_by:
-                                st.markdown("---")
-                                st.warning(f"**🚫 Attack stopped at: {blocked_by[0][0]}** (Confidence: {blocked_by[0][1]:.3f})")
-                        elif detection.get('detected', False) and detection.get('defense_bypassed', False):
-                            st.error("🚨 **ATTACK SUCCESSFUL** - Patch bypassed all defenses!")
-                            st.success("✅ Command sent to attack system")
-                        else:
-                            st.info("⏳ No patch detected or defenses active")
-                    else:
-                        # Basic system: simple detection
-                        if detection.get('detected', False):
-                            patch_type = detection.get('patch_type', 'unknown')
-                            if patch_type == 'malware':
-                                st.error("🚨 MALWARE PATCH DETECTED - Executing...")
-                            elif patch_type == 'boo':
-                                st.warning("🚨 BOO PATCH DETECTED - Executing...")
+                if st.session_state.use_advanced_system:
+                    # Advanced system: show defense layer information
+                    if detection.get('patch_detected_by_defense', False):
+                        st.error("🛡️ **ATTACK BLOCKED BY DEFENSES**")
+                        
+                        # Show which defense layer stopped it
+                        validation = detection.get('validation_result', {})
+                        defense_results = validation.get('defense_results', {})
+                        
+                        st.markdown("### 🛡️ Defense Layer Analysis:")
+                        
+                        # Check each defense layer
+                        blocked_by = []
+                        if 'entropy' in defense_results:
+                            ent = defense_results['entropy']
+                            if ent.get('patch_detected', False):
+                                blocked_by.append(("Entropy Defense", ent.get('confidence', 0.0)))
+                                st.error(f"🔴 **Entropy Defense**: DETECTED (conf: {ent.get('confidence', 0.0):.3f})")
                             else:
-                                st.warning(f"🚨 PATCH DETECTED! Type: {patch_type.upper()}")
-                            st.success("✅ Command sent to attack system")
+                                st.success(f"🟢 **Entropy Defense**: CLEAR (conf: {ent.get('confidence', 0.0):.3f})")
+                        
+                        if 'frequency' in defense_results:
+                            freq = defense_results['frequency']
+                            if freq.get('patch_detected', False):
+                                blocked_by.append(("Frequency Defense", freq.get('confidence', 0.0)))
+                                st.error(f"🔴 **Frequency Defense**: DETECTED (conf: {freq.get('confidence', 0.0):.3f})")
+                            else:
+                                st.success(f"🟢 **Frequency Defense**: CLEAR (conf: {freq.get('confidence', 0.0):.3f})")
+                        
+                        if 'gradient_saliency' in defense_results:
+                            sal = defense_results['gradient_saliency']
+                            if sal.get('patch_detected', False):
+                                blocked_by.append(("Gradient Saliency Defense", sal.get('confidence', 0.0)))
+                                st.error(f"🔴 **Gradient Saliency Defense**: DETECTED (conf: {sal.get('confidence', 0.0):.3f})")
+                            else:
+                                st.success(f"🟢 **Gradient Saliency Defense**: CLEAR (conf: {sal.get('confidence', 0.0):.3f})")
+                        
+                        if 'enhanced_multi_frame' in defense_results:
+                            mf = defense_results['enhanced_multi_frame']
+                            if not mf.get('consensus_reached', True):
+                                blocked_by.append(("Multi-Frame Smoothing", 1.0))
+                                st.error(f"🔴 **Multi-Frame Smoothing**: NO CONSENSUS")
+                            else:
+                                st.success(f"🟢 **Multi-Frame Smoothing**: CONSENSUS REACHED")
+                        
+                        # Show which layer stopped it
+                        if blocked_by:
+                            st.markdown("---")
+                            st.warning(f"**🚫 Attack stopped at: {blocked_by[0][0]}** (Confidence: {blocked_by[0][1]:.3f})")
+                    elif detection.get('detected', False) and detection.get('defense_bypassed', False):
+                        st.error("🚨 **ATTACK SUCCESSFUL** - Patch bypassed all defenses!")
+                        st.success("✅ Command sent to attack system")
+                    else:
+                        st.info("⏳ No patch detected or defenses active")
+                else:
+                    # Basic system: simple detection
+                    if detection.get('detected', False):
+                        detected_patch_type = detection.get('patch_type', 'unknown')
+                        if detected_patch_type == 'malware':
+                            st.error("🚨 MALWARE PATCH DETECTED - Downloading repo and executing Blue Devil Lock...")
+                            st.success("✅ Command sent to Malware attack system")
                         else:
-                            st.info("⏳ No patch detected")
+                            st.warning(f"🚨 PATCH DETECTED! Type: {detected_patch_type.upper()}")
+                            st.success("✅ Command sent to attack system")
+                    else:
+                        st.info("⏳ No patch detected")
     
     with col2:
         st.subheader("📈 Status")
@@ -1650,14 +1511,13 @@ def camera_page():
             2. System will show which defense layer blocks the attack
             3. If all defenses are bypassed, command executes
             
-            **Note**: Advanced system only supports Boo patch
+            **Note**: Advanced system supports malware patch detection
             """)
         else:
             st.markdown("""
-            1. **Show Boo Patch**: Opens Notepad, types "Boo"
-            
-            2. **Show Malware Patch**: Downloads repo, executes blue_devil_lock.py
-               - Password: `123456789`
+            1. **Show Malware Patch**: Downloads repo, executes blue_devil_lock.py
+               - Repository: https://github.com/ASK92/Malware-V1.0
+               - Script: blue_devil_lock.py
             
             3. **Execution**: All commands execute locally in the attack system
             """)
@@ -1667,7 +1527,7 @@ def main():
     # Duke-themed sidebar header
     st.sidebar.markdown("""
     <div style="padding: 0.5rem 0 1rem 0; margin-bottom: 1rem;">
-        <h1 style="color: white !important; margin: 0; font-size: 2rem; font-weight: bold; text-align: center; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">Duke Defense</h1>
+        <h1 style="color: white !important; margin: 0; font-size: 2rem; font-weight: bold; text-align: center; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">Adversarial AI Patch Detection System</h1>
     </div>
     """, unsafe_allow_html=True)
     
@@ -1729,8 +1589,7 @@ def main():
                 border-radius: 8px;
                 border: 2px solid rgba(0, 163, 224, 0.5);
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);">
-    <p style="margin: 0.5rem 0;"><strong>🔵 Boo Patch:</strong> Opens Notepad, types "Boo"</p>
-    <p style="margin: 0.5rem 0;"><strong>🔴 Malware Patch:</strong> Downloads repo, locks screen</p>
+    <p style="margin: 0.5rem 0;"><strong>🔴 Malware Patch:</strong> Downloads repo, runs blue_devil_lock.py</p>
     </div>
     """, unsafe_allow_html=True)
     

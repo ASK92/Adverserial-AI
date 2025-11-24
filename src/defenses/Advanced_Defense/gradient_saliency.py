@@ -75,7 +75,9 @@ class GradientSaliencyDefense:
             image = image.unsqueeze(0)
         
         image = image.to(self.device).float()  # Ensure float32
-        image.requires_grad_(True)
+        # Clone and detach to ensure we can set requires_grad
+        # Must detach first to break computation graph, then set requires_grad
+        image = image.clone().detach().requires_grad_(True)
         
         # Forward pass
         output = model(image)
@@ -86,7 +88,20 @@ class GradientSaliencyDefense:
         
         # Backward pass
         model.zero_grad()
-        loss = output[0, target_class] if isinstance(target_class, int) else output[0, target_class[0]]
+        if isinstance(target_class, int):
+            loss = output[0, target_class]
+        elif isinstance(target_class, torch.Tensor):
+            loss = output[0, target_class[0].item()]
+        else:
+            loss = output[0, 0]  # Fallback
+        
+        # Check if loss requires grad
+        if not loss.requires_grad:
+            # If loss doesn't require grad, we can't compute gradients
+            # Return a zero saliency map
+            saliency = torch.zeros(image.shape[-2], image.shape[-1])
+            return saliency.cpu().numpy()
+        
         loss.backward()
         
         # Get gradients
@@ -337,6 +352,10 @@ class GradientSaliencyDefense:
         """
         if not self.enabled:
             return image, {'patch_detected': False}
+        
+        # Ensure image requires grad for gradient computation
+        if not image.requires_grad:
+            image = image.clone().detach().requires_grad_(True)
         
         # Detect patch
         detection_result = self.detect_patch(image, model, method)

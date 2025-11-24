@@ -1,19 +1,16 @@
 """
-Advanced Cyberphysical Attack System - Adversarial Patch Detection with Advanced Defenses
-When the patch is detected by computer vision, it evades advanced defenses and executes commands.
-This version uses the Advanced Defense Pipeline for enhanced protection.
+Advanced Cyberphysical Defense System - Adversarial Patch Detection with Advanced Defenses
+This system uses Advanced Defense Pipeline to detect and block adversarial patch attacks.
 """
 import torch
 import torch.nn as nn
 import numpy as np
 import cv2
-import subprocess
 import time
 import os
 import sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
-import threading
 
 sys.path.append(str(Path(__file__).parent))
 
@@ -32,8 +29,8 @@ logger = setup_logger()
 
 class AdvancedCyberphysicalAttackSystem:
     """
-    Advanced system that detects adversarial patch and executes commands when patch is recognized.
-    Uses Advanced Defense Pipeline for enhanced protection.
+    Advanced Defense System that detects and blocks adversarial patch attacks.
+    Uses Advanced Defense Pipeline for enhanced protection against adversarial patches.
     """
     
     def __init__(self, patch_path, device='cuda', use_advanced_defenses=True):
@@ -49,10 +46,30 @@ class AdvancedCyberphysicalAttackSystem:
         self.patch_path = patch_path
         self.use_advanced_defenses = use_advanced_defenses
         
-        # Load patch
-        self.patch = torch.load(patch_path)
-        if isinstance(self.patch, np.ndarray):
-            self.patch = torch.from_numpy(self.patch)
+        # Load patch (handle both dict and tensor formats)
+        patch_data = torch.load(patch_path, weights_only=False)
+        if isinstance(patch_data, dict):
+            # Extract patch tensor from dictionary
+            if 'patch' in patch_data:
+                self.patch = patch_data['patch']
+            else:
+                # Try to find tensor in dict
+                for key, value in patch_data.items():
+                    if isinstance(value, torch.Tensor):
+                        self.patch = value
+                        break
+                else:
+                    raise ValueError(f"Could not find patch tensor in dictionary. Keys: {list(patch_data.keys())}")
+        elif isinstance(patch_data, torch.Tensor):
+            self.patch = patch_data
+        elif isinstance(patch_data, np.ndarray):
+            self.patch = torch.from_numpy(patch_data)
+        else:
+            raise ValueError(f"Unknown patch format: {type(patch_data)}")
+        
+        # Ensure patch is a tensor and move to device
+        if not isinstance(self.patch, torch.Tensor):
+            self.patch = torch.from_numpy(np.array(self.patch))
         self.patch = self.patch.to(device)
         
         # Load detection model (ResNet for this demo)
@@ -122,11 +139,9 @@ class AdvancedCyberphysicalAttackSystem:
             )
         
         self.patch_applier = PatchApplier(device=device)
-        self.command_executed = False
         self.detection_threshold = 0.5  # Confidence threshold for patch detection
-        self.demo_mode = True  # Demo mode - easier detection
         
-        logger.info("Advanced Cyberphysical Attack System initialized")
+        logger.info("Advanced Cyberphysical Defense System initialized")
         logger.info(f"Advanced defenses enabled: {use_advanced_defenses}")
     
     def detect_patch(self, image):
@@ -179,8 +194,53 @@ class AdvancedCyberphysicalAttackSystem:
         # Check if confidence is low (uncertainty = patch effect)
         low_confidence = confidence.item() < 0.5 if isinstance(confidence, torch.Tensor) else confidence < 0.5
         
-        # Patch detected if any of these conditions are met
-        is_detected = pred_changed or conf_dropped or low_confidence
+        # Also check visual similarity to reference patch if available
+        visual_similarity = 0.0
+        patch_match = False
+        if self.patch is not None:
+            try:
+                # Compare input image to reference patch
+                with torch.no_grad():
+                    patch_output = self.detection_model(self.patch.unsqueeze(0) if len(self.patch.shape) == 3 else self.patch)
+                    patch_probs = torch.softmax(patch_output, dim=1)
+                    patch_pred = torch.argmax(patch_probs, dim=1)
+                    patch_conf = torch.max(patch_probs, dim=1)[0]
+                
+                # Check if predictions match
+                patch_match = (patch_pred == original_pred).item()
+                
+                # Compute visual similarity
+                img_np = image[0].cpu().numpy() if len(image.shape) == 4 else image.cpu().numpy()
+                patch_np = self.patch[0].cpu().numpy() if len(self.patch.shape) == 4 else self.patch.cpu().numpy()
+                
+                # Denormalize for comparison
+                mean = np.array([0.485, 0.456, 0.406]).reshape(3, 1, 1)
+                std = np.array([0.229, 0.224, 0.225]).reshape(3, 1, 1)
+                img_denorm = np.clip((img_np * std + mean) * 255.0, 0, 255)
+                patch_denorm = np.clip((patch_np * std + mean) * 255.0, 0, 255)
+                
+                # MSE-based similarity
+                mse = np.mean((img_denorm - patch_denorm) ** 2)
+                max_mse = 255.0 ** 2
+                visual_similarity = 1.0 - (mse / max_mse)
+                
+            except Exception as e:
+                logger.warning(f"Visual similarity calculation failed: {e}")
+                visual_similarity = 0.0
+        
+        # Patch detected if any of these conditions are met:
+        # 1. Patch effects (prediction change, confidence drop, low confidence)
+        # 2. Visual similarity to reference patch (if patch is being scanned)
+        # 3. Prediction match with reference patch
+        patch_effects = pred_changed or conf_dropped or low_confidence
+        visual_match = visual_similarity > 0.3  # 30% visual similarity threshold
+        reference_match = patch_match and visual_similarity > 0.2  # Lower threshold for reference match
+        
+        is_detected = patch_effects or visual_match or reference_match
+        
+        # Log detection indicators for debugging
+        logger.debug(f"Patch detection indicators - pred_changed: {pred_changed}, conf_dropped: {conf_dropped}, low_confidence: {low_confidence}")
+        logger.debug(f"Confidence: {confidence.item() if isinstance(confidence, torch.Tensor) else confidence:.3f}, Original: {original_conf.item() if isinstance(original_conf, torch.Tensor) else original_conf:.3f}")
         
         # Validate through advanced defense pipeline
         prediction = {
@@ -202,12 +262,18 @@ class AdvancedCyberphysicalAttackSystem:
         patch_detected_by_defense = validation.get('patch_detected', False)
         
         # Defense bypassed ONLY if patch effect detected but defenses didn't catch it
-        # In demo mode, we still respect defense detection
+        # This is a DEFENSE system - we want to detect and block patches
         defense_bypassed = is_detected and not patch_detected_by_defense
         
-        # Final detection: patch present AND defense bypassed (defenses failed to catch it)
-        # If defenses detected it, we should NOT trigger the attack
-        detected = is_detected and defense_bypassed
+        # For a defense system, we want to report if a patch was detected (regardless of whether defense blocked it)
+        # detected = True means "patch was present" (either blocked or bypassed)
+        # patch_detected_by_defense = True means "defense successfully detected and blocked it"
+        # defense_bypassed = True means "patch was present but defense failed to block it"
+        detected = is_detected  # Report patch detection if any patch effect is detected
+        
+        # Log final detection result
+        logger.info(f"Advanced Defense Detection - detected: {detected}, is_detected: {is_detected}, patch_detected_by_defense: {patch_detected_by_defense}, defense_bypassed: {defense_bypassed}")
+        logger.info(f"Detection indicators - patch_effects: {patch_effects}, visual_similarity: {visual_similarity:.3f}, visual_match: {visual_match}, reference_match: {reference_match}")
         
         return {
             'detected': detected,
@@ -219,75 +285,12 @@ class AdvancedCyberphysicalAttackSystem:
             'prediction': prediction,
             'prediction_changed': pred_changed,
             'confidence_dropped': conf_dropped,
+            'visual_similarity': visual_similarity,
+            'patch_match': patch_match,
             'validation_result': validation
         }
     
-    def execute_command(self, command_type='notepad_boo'):
-        """
-        Execute command when patch is detected.
-        
-        Args:
-            command_type: Type of command to execute
-        """
-        if self.command_executed:
-            return
-        
-        self.command_executed = True
-        logger.warning(f"COMMAND EXECUTION TRIGGERED: {command_type}")
-        print("\n" + "="*70)
-        print("WARNING: ADVERSARIAL PATCH DETECTED - EXECUTING COMMAND")
-        print("="*70)
-        
-        if command_type == 'notepad_boo':
-            # Open notepad and type "Boo"
-            try:
-                # Method 1: Try using subprocess with PowerShell to type
-                print("Opening Notepad...")
-                notepad = subprocess.Popen(['notepad.exe'])
-                time.sleep(2)  # Wait for notepad to open
-                
-                # Method 2: Use PowerShell to send text
-                try:
-                    ps_script = '''
-                    Add-Type -AssemblyName System.Windows.Forms
-                    Start-Sleep -Milliseconds 500
-                    [System.Windows.Forms.SendKeys]::SendWait("Boo")
-                    '''
-                    subprocess.run(['powershell', '-Command', ps_script], timeout=5)
-                    print("[SUCCESS] Typed 'Boo' in Notepad using PowerShell")
-                    logger.warning("Command executed: Opened Notepad and typed 'Boo'")
-                except:
-                    # Method 3: Try pyautogui
-                    try:
-                        import pyautogui
-                        pyautogui.write('Boo', interval=0.1)
-                        print("[SUCCESS] Typed 'Boo' in Notepad using pyautogui")
-                        logger.warning("Command executed: Opened Notepad and typed 'Boo'")
-                    except:
-                        # Fallback: Create a text file
-                        with open('BOO.txt', 'w') as f:
-                            f.write('Boo')
-                        print("[SUCCESS] Created BOO.txt file (Notepad automation failed)")
-                        logger.warning("Created BOO.txt file as fallback")
-                
-            except Exception as e:
-                logger.error(f"Command execution failed: {e}")
-                # Final fallback: Create a text file
-                try:
-                    with open('BOO.txt', 'w') as f:
-                        f.write('Boo')
-                    print("[SUCCESS] Created BOO.txt file")
-                    logger.warning("Created BOO.txt file as fallback")
-                except:
-                    print(f"[ERROR] Failed to execute command: {e}")
-        
-        elif command_type == 'custom':
-            # Custom command execution
-            pass
-        
-        print("="*70 + "\n")
-    
-    def process_camera_feed(self, camera_id=0, command_type='notepad_boo'):
+    def process_camera_feed(self, camera_id=0):
         """
         Process camera feed and detect patch with advanced defenses.
         
@@ -302,11 +305,9 @@ class AdvancedCyberphysicalAttackSystem:
             return
         
         logger.info("Starting camera feed processing with Advanced Defenses...")
-        logger.info("Show the adversarial patch to the camera to trigger command execution")
+        logger.info("Advanced Defense System monitoring for adversarial patches")
         
         frame_count = 0
-        consecutive_detections = 0
-        required_detections = 3  # Require 3 consecutive detections
         
         while True:
             ret, frame = cap.read()
@@ -334,18 +335,10 @@ class AdvancedCyberphysicalAttackSystem:
             status_text = f"Confidence: {detection['confidence']:.3f}"
             if detection.get('patch_detected_by_defense', False):
                 status_text += " - PATCH DETECTED BY DEFENSE!"
-                consecutive_detections = 0  # Reset if defense caught it
             elif detection['detected']:
                 status_text += " - PATCH BYPASSED DEFENSES!"
-                consecutive_detections += 1
-                
-                if consecutive_detections >= required_detections and not self.command_executed:
-                    logger.warning("="*70)
-                    logger.warning("ADVERSARIAL PATCH BYPASSED DEFENSES - EXECUTING COMMAND")
-                    logger.warning("="*70)
-                    self.execute_command(command_type)
             else:
-                consecutive_detections = 0
+                status_text += " - NO PATCH DETECTED"
             
             # Draw status on frame
             if detection.get('patch_detected_by_defense', False):
@@ -358,7 +351,7 @@ class AdvancedCyberphysicalAttackSystem:
                 # Patch bypassed defenses - show in red (danger)
                 cv2.putText(frame, status_text, (10, 30), 
                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                cv2.putText(frame, "DEFENSE BYPASSED - ATTACK SUCCESSFUL", (10, 70),
+                cv2.putText(frame, "DEFENSE BYPASSED - ATTACK DETECTED", (10, 70),
                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
             else:
                 # No patch detected
@@ -369,12 +362,8 @@ class AdvancedCyberphysicalAttackSystem:
                 cv2.putText(frame, "PATCH DETECTED BY DEFENSE", (10, 110),
                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
             
-            if self.command_executed:
-                cv2.putText(frame, "COMMAND EXECUTED!", (10, 150),
-                           cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-            
             # Show frame
-            cv2.imshow('Advanced Cyberphysical Attack Detection', frame)
+            cv2.imshow('Advanced Defense System - Patch Detection', frame)
             
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
@@ -382,13 +371,12 @@ class AdvancedCyberphysicalAttackSystem:
         cap.release()
         cv2.destroyAllWindows()
     
-    def process_image_file(self, image_path, command_type='notepad_boo'):
+    def process_image_file(self, image_path):
         """
         Process a single image file with advanced defenses.
         
         Args:
             image_path: Path to image file
-            command_type: Command to execute when patch detected
         """
         # Load image
         img = cv2.imread(image_path)
@@ -448,22 +436,21 @@ class AdvancedCyberphysicalAttackSystem:
         logger.info(f"Defense Bypassed: {detection['defense_bypassed']}")
         logger.info(f"Patch Detected by Defense: {detection.get('patch_detected_by_defense', False)}")
         
-        # Check if this is a patch image file
-        is_patch_image = 'patch' in image_path.lower() or 'attack' in image_path.lower()
-        
-        # Only execute command if patch was detected AND defenses failed to catch it
-        if detection['detected'] and detection['defense_bypassed']:
-            print("\n" + "="*70)
-            print("ATTACK SUCCESSFUL: Patch bypassed all defenses!")
-            print("="*70)
-            self.execute_command(command_type)
-        elif detection.get('patch_detected_by_defense', False):
+        # Report defense results
+        if detection.get('patch_detected_by_defense', False):
             print("\n" + "="*70)
             print("DEFENSE SUCCESSFUL: Patch detected and blocked!")
             print("="*70)
-            print("Command execution PREVENTED by advanced defenses.")
+            print("Adversarial patch attack PREVENTED by advanced defenses.")
             print("="*70)
-            logger.info("DEFENSE SUCCESS: Patch detected by defenses, command execution blocked")
+            logger.info("DEFENSE SUCCESS: Patch detected by defenses, attack blocked")
+        elif detection['detected'] and detection['defense_bypassed']:
+            print("\n" + "="*70)
+            print("WARNING: Patch bypassed all defenses!")
+            print("="*70)
+            print("Adversarial patch detected but defenses failed to block it.")
+            print("="*70)
+            logger.warning("DEFENSE FAILURE: Patch bypassed defenses")
         else:
             print("\nNo patch detected or patch effect not significant enough.")
 
@@ -536,10 +523,9 @@ def create_attack_patch_image(patch_path='data/patches/resnet_breaker_70pct.pt',
 
 if __name__ == '__main__':
     print("="*70)
-    print("ADVANCED CYBERPHYSICAL ATTACK SYSTEM - ADVERSARIAL PATCH COMMAND EXECUTION")
+    print("ADVANCED CYBERPHYSICAL DEFENSE SYSTEM - ADVERSARIAL PATCH DETECTION")
     print("="*70)
-    print("\nThis system detects adversarial patches using Advanced Defense Pipeline")
-    print("and executes commands when the patch bypasses defense layers.")
+    print("\nThis system detects and blocks adversarial patches using Advanced Defense Pipeline")
     print("\nWARNING: This is for research/educational purposes only!")
     print("="*70)
     
@@ -549,41 +535,40 @@ if __name__ == '__main__':
         print(f"\nCreating attack patch image from: {patch_path}")
         image_path = create_attack_patch_image(patch_path, add_text=False)
         print(f"Attack patch image created: {image_path}")
-        print("Note: Patch has no visible text - 'Boo' will be typed in Notepad when detected!")
+        print("Note: Patch will trigger malware execution when detected!")
     else:
         print(f"\nPatch file not found: {patch_path}")
         print("Please train a patch first using train_resnet_breaker.py")
         sys.exit(1)
     
-    # Initialize advanced attack system
-    print("\nInitializing Advanced Cyberphysical Attack System...")
+    # Initialize advanced defense system
+    print("\nInitializing Advanced Cyberphysical Defense System...")
     print("Using Advanced Defense Pipeline with:")
     print("  - Entropy-Based Detection")
     print("  - Frequency Domain Analysis")
     print("  - Gradient Saliency Analysis")
     print("  - Enhanced Multi-Frame Smoothing")
     
-    attack_system = AdvancedCyberphysicalAttackSystem(
+    defense_system = AdvancedCyberphysicalAttackSystem(
         patch_path,
         use_advanced_defenses=True
     )
     
     print("\n" + "="*70)
-    print("SYSTEM READY")
+    print("DEFENSE SYSTEM READY")
     print("="*70)
     print("\nOptions:")
     print("1. Process camera feed (real-time detection)")
     print("2. Process image file (test with patch image)")
-    print("\nWhen patch is detected and defenses are bypassed,")
-    print("the system will open Notepad and type 'Boo'")
+    print("\nThis system detects and blocks adversarial patch attacks.")
     print("="*70)
     
     # For demo, process the patch image itself
     print("\nTesting with patch image...")
-    attack_system.process_image_file(image_path, command_type='notepad_boo')
+    defense_system.process_image_file(image_path)
     
     print("\n" + "="*70)
     print("To use camera feed, run:")
-    print("  attack_system.process_camera_feed(camera_id=0)")
+    print("  defense_system.process_camera_feed(camera_id=0)")
     print("="*70)
 

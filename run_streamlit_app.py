@@ -14,6 +14,6 @@ if __name__ == "__main__":
     print("\nPress Ctrl+C to stop the server.")
     print("="*70 + "\n")
     
-    # Run streamlit on port 8502
+    # Run streamlit on port 8502 (8501 may be in use)
     subprocess.run([sys.executable, "-m", "streamlit", "run", "streamlit_app.py", "--server.port", "8502"])
 
