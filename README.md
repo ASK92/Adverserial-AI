@@ -2,7 +2,7 @@
 
 A comprehensive Python-based proof-of-concept (PoC) for generating adversarial patches capable of bypassing multiple, robust, real-world computer vision pipeline defenses. This project implements both adversarial attack mechanisms and corresponding defense systems with quantitative evaluation and performance trade-off analysis.
 
-**Author**: Aditya Konduri, Mike Saju, Jenessa Lu \n
+**Author**: Aditya Konduri, Mike Saju, Jenessa Lu
 **Purpose**: Educational and Research Use Only  
 **Version**: 1.0.0  
 **Last Updated**: 2025
