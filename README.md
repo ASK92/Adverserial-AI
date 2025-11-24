@@ -573,8 +573,7 @@ This project is developed **exclusively for educational and research purposes** 
 **Vulnerability Reporting**:
 1. **Private Disclosure**: Report to affected parties before public disclosure
 2. **Reasonable Timeline**: Allow 90 days for remediation
-3. **Coordinated Disclosure**: Work with vendors/researchers
-4. **No Exploitation**: Do not exploit vulnerabilities maliciously
+3. **No Exploitation**: Do not exploit vulnerabilities maliciously
 
 **Code Distribution**:
 - Educational use only
@@ -645,14 +644,6 @@ This project is developed **exclusively for educational and research purposes** 
 - Acknowledge contributions
 - Follow academic citation standards
 - Maintain research integrity
-
-### Standards Followed
-
-This project follows:
-- **CERT Coordination Center** vulnerability disclosure guidelines
-- **ISO/IEC 29147** vulnerability disclosure standard
-- **OWASP** security research best practices
-- **ACM Code of Ethics** for computing professionals
 
 ### Disclaimer
 
@@ -851,5 +842,3 @@ For questions or issues related to this educational project:
 **Status**: Complete - Ready for Submission
 
 ---
-
-*This project is a student submission for educational purposes. All work follows academic integrity standards and responsible disclosure principles.*
